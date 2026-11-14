@@ -1,0 +1,4699 @@
+{
+  "name": "PI - M2",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM n8n_chat_histories WHERE session_id = '1409704240';\n\nDELETE FROM formulario\nWHERE cliente_id = (SELECT id FROM clientes WHERE telegram_user_id = 1409704240);\n\nDELETE FROM clientes WHERE telegram_user_id = 1409704240;",
+        "options": {}
+      },
+      "id": "f49e03bf-1e91-40df-b957-b46cb175ff48",
+      "name": "Reset1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2880,
+        7024
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Set Fields').item.json.message.chatId }}_buffer",
+        "messageData": "={{ JSON.stringify($('Set Fields').item.json.message) }}",
+        "tail": true
+      },
+      "id": "96b53f37-0e2e-4825-9fb2-4bd8f0bd8bda",
+      "name": "Push message buffer1",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        7088
+      ],
+      "credentials": {
+        "redis": {
+          "id": "ahqpvk20kwwRT6eb",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "message",
+        "key": "={{ $('Set Fields').item.json.message.chatId }}_buffer",
+        "options": {}
+      },
+      "id": "4926f9d0-6e3e-4fca-8652-0061e7fffa4a",
+      "name": "Get message buffer1",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        7088
+      ],
+      "credentials": {
+        "redis": {
+          "id": "ahqpvk20kwwRT6eb",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.last()).message_id }}",
+                    "rightValue": "={{ $('Set Fields').item.json.message.message_id }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    },
+                    "id": "6c515a58-0f47-4d27-9bdd-5d5a956f5410"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No hacer nada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77646814-4af5-4122-ba56-a4ae92743640",
+                    "leftValue": "={{ JSON.parse($json.message.last()).timestamp }}",
+                    "rightValue": "={{ $now.minus(10, 'seconds') }}",
+                    "operator": {
+                      "type": "dateTime",
+                      "operation": "before"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "seguir"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Esperar"
+        }
+      },
+      "id": "4dec2c5f-db5c-47ab-bb09-8fd97bf78507",
+      "name": "Switch1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        4032,
+        7072
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "503c9fbe-f2be-43ed-8c8b-e05e354fb4bd",
+      "name": "No Operation, do nothing1",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4256,
+        6896
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Set Fields').item.json.message.chatId }}_buffer"
+      },
+      "id": "f3d6fc52-007e-4639-a64e-3ae3683e980f",
+      "name": "Delete message buffer1",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        4256,
+        7088
+      ],
+      "credentials": {
+        "redis": {
+          "id": "ahqpvk20kwwRT6eb",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "message",
+        "options": {}
+      },
+      "id": "d64f14ca-5306-48c9-8d17-ec1eb1b01778",
+      "name": "Split Out1",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        7088
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "971ae343-751c-416e-accb-63f4bd525032",
+      "name": "JSON parse1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4704,
+        7088
+      ]
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "timestamp"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "539d0fd3-eea9-4501-b31a-0350792c73d5",
+      "name": "Sort1",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        4928,
+        7088
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Body",
+              "renameField": true,
+              "outputFieldName": "messages"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1b3e424e-e386-40b3-823a-9c0548870ecb",
+      "name": "Aggregate1",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5152,
+        7088
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1511be2-8d1f-4a38-80a7-51ae70d30c58",
+              "name": "text",
+              "value": "={{ $json.messages.join(\" \") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a74ce0c1-bbc7-447d-94c8-51915bef81a8",
+      "name": "Unir mensajes1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5376,
+        7088
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "847f2d59-5fef-4863-95b9-be1e91c71c0b",
+      "name": "Anthropic Chat Model3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        2560,
+        8112
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "jSSPazAQ2fMcW5sP",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "b16716f2-8c20-454d-94cf-39dce8920a26",
+      "name": "OpenAI Chat Model3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2704,
+        8112
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "QV46cpqxl9hMqFXE",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "7280f337-1274-4ba7-a111-dd4982a32b05",
+      "name": "Wait3",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4256,
+        7280
+      ],
+      "webhookId": "d4ce0ca6-5c91-4211-b783-c08690d39434"
+    },
+    {
+      "parameters": {
+        "jsCode": "const insertar = $input.item.json.id !== undefined;\nreturn { json: { ...$input.item.json, Insertar: insertar } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        6464
+      ],
+      "id": "2a3a102c-abeb-4450-b8a7-a3b3c51a84ee",
+      "name": "Datos duplicados?1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set Fields').item.json.message.chatId }}",
+        "text": "¡Hola! Para atenderte primero completá este formulario: https://n8n-hostinger-n8n.ceuf3o.easypanel.host/form/37951a8a-9632-4bb6-88d4-48b1093b50fe",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3568,
+        7312
+      ],
+      "name": "Pedir formulario1",
+      "id": "3ed12e70-243b-451f-91de-fde93d1f1a85",
+      "webhookId": "225b5769-09b8-4244-ab4c-da2eb3993a23",
+      "credentials": {
+        "telegramApi": {
+          "id": "DfDb27B11TiEcncA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fila = $input.all().find(i => i.json && i.json.telegram_user_id);\n\nif (!fila) {\n  return [{ json: { hayFormulario: false } }];\n}\n\nreturn [{ json: { ...fila.json, hayFormulario: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3088,
+        7104
+      ],
+      "id": "dbe6ccfd-8101-4e76-9a65-883c20c952ed",
+      "name": "Hay data?1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nlet data = input.output ?? input;\nif (typeof data === 'string') {\n  // Si el modelo escribió el JSON dentro de un bloque ```json, lo tomamos de ahí\n  const bloque = data.match(/```json\\s*([\\s\\S]*?)```/);\n  const crudo = bloque ? bloque[1] : data;\n  try {\n    data = JSON.parse(crudo.trim());\n  } catch (e) {\n    data = { mensaje: data.split('```')[0] };\n  }\n}\n\n// Texto plano: sin negritas ni bloques de código que rompan Telegram\nconst limpiar = t => String(t ?? '').replace(/\\*\\*/g, '').replace(/```/g, '').trim();\nconst mensaje = limpiar(data.mensaje);\n\nconst partes = mensaje.split('|||').map(p => p.trim()).filter(p => p.length > 0);\n\nconst derivaciones = ['ninguna', 'venta', 'reclamo', 'consulta'];\nconst rutas = ['listo_para_comprar', 'evaluacion', 'exploratorio', 'recurrente', 'queja'];\nconst promos = ['ninguna', 'primera_compra', 'segundo_par', 'recompra'];\n\nconst valor = v => String(v ?? '').toLowerCase().trim();\n\nconst derivar = derivaciones.includes(valor(data.derivar)) ? valor(data.derivar) : 'ninguna';\nconst ruta = rutas.includes(valor(data.ruta)) ? valor(data.ruta) : null;\nconst promocion_ofrecida = promos.includes(valor(data.promocion_ofrecida))\n  ? valor(data.promocion_ofrecida)\n  : 'ninguna';\n\nreturn [{\n  json: {\n    part1: partes[0] || '',\n    part2: partes[1] || '',\n    part3: partes[2] || '',\n    venta_realizada: data.venta_realizada === true,\n    derivar,\n    ruta,\n    promocion_ofrecida,\n    detalle: limpiar(data.detalle)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        7888
+      ],
+      "id": "d8d79108-bd0d-42c0-aed1-a81e3cfd4196",
+      "name": "Divisor de mensajes1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5344,
+        7680
+      ],
+      "id": "280d0f27-9752-480e-b1c3-40d78f0374e2",
+      "name": "Wait4",
+      "webhookId": "9b0662ac-071a-4884-a2bb-1afeedd7745a"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5824,
+        7776
+      ],
+      "id": "400fb4a0-5c5d-4a7b-b838-c60ae2183aba",
+      "name": "Unir partes 1-2-"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-part2",
+              "leftValue": "={{ $('Divisor de mensajes1').item.json.part3 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5120,
+        7728
+      ],
+      "id": "b4baad1e-40cc-4d36-bd77-f52cc3ee7265",
+      "name": "¿Hay Parte 3?1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-part2",
+              "leftValue": "={{ $('Divisor de mensajes1').item.json.part2 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4448,
+        7840
+      ],
+      "id": "36e0e18e-6ed5-4a82-9092-baf443e3d05d",
+      "name": "¿Hay Parte 2?1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4672,
+        7744
+      ],
+      "id": "6a8bd399-f597-4998-8579-51dc4690b092",
+      "name": "Wait5",
+      "webhookId": "46e2b424-5dc7-473b-9b62-db9cf5a9496a"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set Fields').item.json.message.chatId }}",
+        "text": "={{ $('Divisor de mensajes1').item.json.part1 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4272,
+        7840
+      ],
+      "id": "25315368-c3f5-49f6-89a2-64b590d48bc3",
+      "name": "Parte ",
+      "webhookId": "e3ca169f-51aa-4dfb-8202-2e88d8bd941f",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "telegramApi": {
+          "id": "DfDb27B11TiEcncA",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Set Fields').item.json.message.chatId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        2848,
+        8112
+      ],
+      "id": "856caa38-5da2-421f-bb15-009465e5aca1",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO eventos (telegram_user_id, canal, rol, contenido)\nVALUES ($1::bigint, 'telegram', 'cliente', $2);",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').item.json.message.chatId, $('Unir mensajes1').item.json.text ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5792,
+        7072
+      ],
+      "name": "Registrar mensaje cliente1",
+      "id": "ef2d3634-cdfd-42f9-b493-b35be17750b8",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e1c5a175-bcf1-4fc3-b358-c487c695a8e4",
+              "leftValue": "={{ $json.hayFormulario }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3312,
+        7104
+      ],
+      "id": "362c8479-ecde-427d-8390-1fa5a1ed0838",
+      "name": "Mensaje predeterminado?1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO eventos (telegram_user_id, canal, rol, contenido)\nVALUES ($1::bigint, 'telegram', 'agente', $2);",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').item.json.message.chatId, [ $('Divisor de mensajes1').first().json.part1, $('Divisor de mensajes1').first().json.part2, $('Divisor de mensajes1').first().json.part3 ].filter(Boolean).join('\\n') ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2256,
+        9360
+      ],
+      "name": "Registrar respuesta agente1",
+      "id": "d4cfccd4-f8c2-4db1-be6d-f3d445fffb77",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT string_agg(x.contenido, E'\\n' ORDER BY x.id) AS conversacion\nFROM (\n  SELECT id, message->>'content' AS contenido\n  FROM n8n_chat_histories\n  WHERE session_id = $1\n    AND message->>'type' = 'human'\n  ORDER BY id DESC\n  LIMIT 30\n) x;",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').item.json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2496,
+        9344
+      ],
+      "id": "bb3a7b2b-8b05-4705-b71b-4bd9dfa65b15",
+      "name": "Historial de conversacion1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        2800,
+        9536
+      ],
+      "id": "6349b67a-0de4-4b29-aed7-8adcf86a8983",
+      "name": "Anthropic Chat Model4",
+      "credentials": {
+        "anthropicApi": {
+          "id": "jSSPazAQ2fMcW5sP",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2960,
+        9536
+      ],
+      "id": "4a276732-9c33-445e-b70f-973da10a2fac",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "QV46cpqxl9hMqFXE",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0fe45a5b-69e2-4fe8-a845-fcf11875ab05",
+              "leftValue": "={{ $json.output.analizar }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3264,
+        9312
+      ],
+      "id": "c66c7d2e-3e16-44ff-bc76-0d44a13470c1",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  c.telegram_user_id,\n  f.nombre_cliente, f.correo_electronico, f.ciudad,\n  f.interes_principal, f.producto_categoria, f.talle, f.mensaje_cliente,\n  COALESCE((\n    SELECT json_agg(json_build_object(\n             'producto', cc.producto, 'categoria', cc.categoria, 'talle', cc.talle,\n             'fecha', cc.fecha_compra, 'canal', cc.canal_venta, 'monto', cc.monto\n           ) ORDER BY cc.fecha_compra DESC)\n    FROM compras_clientes cc\n    WHERE lower(cc.email) = lower(f.correo_electronico)\n  ), '[]'::json) AS compras,\n  (\n    SELECT string_agg('[' || e.canal || '] ' || e.rol || ': ' || e.contenido, E'\\n' ORDER BY e.created_at)\n    FROM (\n      SELECT canal, rol, contenido, created_at\n      FROM eventos\n      WHERE telegram_user_id = c.telegram_user_id\n      ORDER BY created_at DESC\n      LIMIT 20\n    ) e\n  ) AS eventos,\n  (\n    SELECT e.id\n    FROM eventos e\n    WHERE e.telegram_user_id = c.telegram_user_id\n      AND e.rol = 'cliente'\n      AND e.canal = 'telegram'\n    ORDER BY e.created_at DESC\n    LIMIT 1\n  ) AS evento_id\nFROM clientes c\nJOIN formulario f ON f.telegram_user_id = c.telegram_user_id\nWHERE c.telegram_user_id = $1::bigint;",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').item.json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3552,
+        8768
+      ],
+      "id": "476984f2-bce3-4efe-a3ff-1c52cb74f17e",
+      "name": "Formulario, Eventos, Compras2",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) AS total_compras,\n  CASE WHEN COUNT(*) > 0 THEN 'recurrente' ELSE 'nuevo' END AS tipo_cliente,\n  MAX(fecha_compra) AS ultima_compra,\n  COALESCE(json_agg(json_build_object(\n    'producto', producto, 'categoria', categoria, 'talle', talle,\n    'fecha', fecha_compra, 'canal', canal_venta, 'monto', monto\n  ) ORDER BY fecha_compra DESC), '[]'::json) AS compras\nFROM compras_clientes\nWHERE lower(email) = lower($1);",
+        "options": {
+          "queryReplacement": "={{ [ $('Hay data?1').first().json.correo_electronico ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5584,
+        7088
+      ],
+      "id": "dac38968-dc01-46ba-b3f7-7f4d0b4e106c",
+      "name": "Tipo Cliente1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consulta el catálogo de UrbanStep: stock, precio y link por modelo y talle. Usala siempre antes de confirmar disponibilidad o precio. Todos los parámetros son opcionales: si no aplica, enviá una cadena vacía. Devuelve hasta 30 filas.",
+        "operation": "executeQuery",
+        "query": "SELECT modelo, categoria, talle, stock,\n       replace(to_char(precio, 'FM999990.00'), '.', ',') || ' USD' AS precio,\n       url_producto\nFROM productos_stock\nWHERE ($1::text = '' OR modelo ILIKE '%' || $1::text || '%')\n  AND ($2::text = '' OR talle = $2::text)\n  AND ($3::text = '' OR categoria ILIKE $3::text)\nORDER BY modelo, talle::int\nLIMIT 30;",
+        "options": {
+          "queryReplacement": "={{ [ $fromAI('modelo', 'Nombre del modelo, por ejemplo Urban Street Low. Vacío si no se pidió uno puntual', 'string'), $fromAI('talle', 'Talle como número entero entre 35 y 45. Vacío si no se pidió', 'string'), $fromAI('categoria', 'Categoría: Urbano, Running, Deportivo u Outdoor. Vacío si no aplica', 'string') ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2992,
+        8112
+      ],
+      "name": "consultar_stock1",
+      "id": "ef16890b-5c56-4c96-8f11-b6ce10b663d2",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        3888,
+        8960
+      ],
+      "id": "6022d5d2-6abf-4bd5-8ca7-72c0f3525349",
+      "name": "Anthropic Chat Model5",
+      "credentials": {
+        "anthropicApi": {
+          "id": "jSSPazAQ2fMcW5sP",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4064,
+        8960
+      ],
+      "id": "85e81edc-c5b1-4692-80ae-af752ec0d3be",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "QV46cpqxl9hMqFXE",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const entrada = $input.first().json;\n\nconst origen = entrada.puntaje_nps !== undefined && entrada.puntaje_nps !== null\n  ? 'nps'\n  : 'conversacion';\n\nreturn [{ json: { ...entrada, origen } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        8752
+      ],
+      "id": "4424bc66-c08e-41ac-82ad-3851c0c69810",
+      "name": "Conversación o NPS?1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Conversación o NPS?1').first().json;\nconst raw = $input.first().json;\n\n// El Structured Output Parser deja el objeto dentro de \"output\"; si no, viene como texto\nlet data = raw.output ?? raw.text ?? raw;\nif (typeof data === 'string') {\n  try {\n    data = JSON.parse(data.replace(/```json|```/g, '').trim());\n  } catch (e) {\n    data = {};\n  }\n}\n\n// Normaliza: minúsculas, sin tildes, guion o espacio -> guion bajo\nconst norm = v => String(v ?? '')\n  .toLowerCase().trim()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[-\\s]+/g, '_');\n\nconst permitidos = {\n  sentimiento: ['positivo', 'neutro', 'negativo'],\n  intencion: ['alta', 'media', 'baja'],\n  etapa_funnel: ['awareness', 'consideracion', 'decision', 'post_venta'],\n  objecion_principal: ['precio', 'stock', 'talle', 'envio', 'confianza', 'ninguna', 'otra'],\n  prioridad: ['alta', 'media', 'baja'],\n  clasificacion: ['fidelizacion', 'sugerencia', 'observacion', 'post_venta', 'reclamo', 'ninguna'],\n};\n\nconst resultado = {};\nconst errores = [];\n\nfor (const [campo, valores] of Object.entries(permitidos)) {\n  const valor = norm(data[campo] ?? (campo === 'clasificacion' ? 'ninguna' : ''));\n  if (valores.includes(valor)) {\n    resultado[campo] = valor;\n  } else {\n    resultado[campo] = null;\n    errores.push(`${campo}: \"${data[campo]}\"`);\n  }\n}\n\nconst resumen = String(data.resumen ?? '').trim();\nconst accion = String(data.accion_recomendada ?? '').trim();\nif (!resumen) errores.push('resumen vacío');\nif (!accion) errores.push('accion_recomendada vacía');\n\nreturn [{\n  json: {\n    telegram_user_id: ctx.telegram_user_id,\n    evento_id: ctx.evento_id ?? null,\n    origen: ctx.origen,\n    ...resultado,\n    resumen,\n    accion_recomendada: accion,\n    valido: errores.length === 0,\n    errores,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4368,
+        8736
+      ],
+      "id": "98b53b6a-ee33-4987-8234-7e72e548d599",
+      "name": "Parseo Análisis1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Slack interpreta &, < y > como parte de su formato: se escapan en los textos dinámicos\nconst esc = t => String(t ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\n// El error va dentro de `código`: sin comillas invertidas ni saltos de línea, y con largo acotado\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst error = esc(\n  (typeof rawError === 'string' ? rawError : JSON.stringify(rawError))\n    .replace(/`/g, \"'\")\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, 400)\n);\n\nconst setFields = $('Set Fields').first().json.message;\nconst chatId = esc(setFields.chatId);\nconst mensajeCliente = esc(\n  String(setFields.Body ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, 200)\n);\n\nconst baseUrl = 'https://n8n-hostinger-n8n.ceuf3o.easypanel.host';\nconst linkEjecucion = `${baseUrl}/workflow/${$workflow.id}/executions/${$execution.id}`;\nconst hora = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });\n\nconst texto = [\n  ':rotating_light: *Falló la búsqueda del cliente*',\n  '*Nodo:* Buscar Cliente',\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n  `*Cliente (chatId):* ${chatId}`,\n  `*Mensaje que escribió:* ${mensajeCliente || '(vacío)'}`,\n  `*Ejecución:* <${linkEjecucion}|Ver en n8n>`,\n  `*Hora:* ${hora}`,\n].join('\\n');\n\nreturn [{ json: { texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3088,
+        7328
+      ],
+      "id": "34687e6a-0d2e-4e96-ba5d-935515b14535",
+      "name": "Code in JavaScript14"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.telegram_user_id, f.nombre_cliente, f.correo_electronico, f.ciudad,\n       f.interes_principal, f.producto_categoria, f.talle, f.mensaje_cliente\nFROM clientes c\nJOIN formulario f ON f.telegram_user_id = c.telegram_user_id\nWHERE c.telegram_user_id = $1::bigint;",
+        "options": {
+          "queryReplacement": "={{ [ $json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2880,
+        7200
+      ],
+      "name": "Buscar Cliente1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "b2e554e2-b8b4-4a79-97c1-635ba08def35",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3296,
+        7328
+      ],
+      "id": "61ff47bb-cab5-4c70-a463-df497dd3c1b6",
+      "name": "Send a message14",
+      "webhookId": "6ccdd1d2-28fd-48b7-89fd-b38d4c3f80d9",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\nconst setFields = $('Set Fields').first().json.message;\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(\n  `*Cliente (chatId):* ${esc(setFields.chatId)}`,\n  `*Mensaje que escribió:* ${esc(limpiar(setFields.Body, 200)) || '(vacío)'}`,\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6256,
+        7296
+      ],
+      "id": "a56fa685-902d-44f4-ac53-e92338d3d04e",
+      "name": "Code in JavaScript15"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        6496,
+        7296
+      ],
+      "id": "62171b6c-18cd-426b-93ad-77437052bf86",
+      "name": "Send a message15",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst esc = t => String(t ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\nconst limpiar = (t, max) => String(t ?? '')\n  .replace(/`/g, \"'\")\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, max);\n\n// Las partes se envían en orden: la última que se ejecutó es la que falló\nconst nodo = $('Parte 3').isExecuted\n  ? 'Parte 3'\n  : $('Parte 2').isExecuted\n    ? 'Parte 2'\n    : 'Parte 1';\n\nconst campo = { 'Parte 1': 'part1', 'Parte 2': 'part2', 'Parte 3': 'part3' }[nodo];\nconst textoNoEnviado = esc(limpiar($('Divisor de mensajes1').first().json[campo], 300));\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\n// Pistas para los errores más comunes de Telegram\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) {\n  pista = 'El texto tiene un formato que Telegram no puede interpretar (Markdown o bloques de código sin cerrar).';\n} else if (/blocked by the user/i.test(errorTexto)) {\n  pista = 'El cliente bloqueó al bot.';\n} else if (/chat not found/i.test(errorTexto)) {\n  pista = 'El chatId no existe o el cliente nunca inició el chat con el bot.';\n} else if (/message is too long/i.test(errorTexto)) {\n  pista = 'El mensaje supera el límite de Telegram (4096 caracteres).';\n}\n\nconst chatId = esc($('Set Fields').first().json.message.chatId);\nconst baseUrl = 'https://n8n-hostinger-n8n.ceuf3o.easypanel.host';\nconst linkEjecucion = `${baseUrl}/workflow/${$workflow.id}/executions/${$execution.id}`;\nconst hora = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });\n\nconst lineas = [\n  `:rotating_light: *Falló el envío por Telegram (${nodo})*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\n\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\n\nlineas.push(\n  `*Cliente (chatId):* ${chatId}`,\n  `*Texto que no se envió:* ${textoNoEnviado || '(vacío)'}`,\n  `*Ejecución:* <${linkEjecucion}|Ver en n8n>`,\n  `*Hora:* ${hora}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6096,
+        7600
+      ],
+      "id": "d6b3804c-12fa-4a74-a26b-512b37e12c53",
+      "name": "Code in JavaScript16"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        6320,
+        7600
+      ],
+      "id": "81cfde70-35a0-42c1-9e17-5fc3f74194e9",
+      "name": "Send a message16",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst esc = t => String(t ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\nconst limpiar = (t, max) => String(t ?? '')\n  .replace(/`/g, \"'\")\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\n// Pistas para los errores más comunes de los modelos y herramientas\nlet pista = '';\nif (/rate limit|429/i.test(errorTexto)) {\n  pista = 'Límite de uso del proveedor de IA. Revisar cuota o reintentar más tarde.';\n} else if (/overloaded|529|503/i.test(errorTexto)) {\n  pista = 'El proveedor de IA está saturado.';\n} else if (/api key|authentication|unauthorized|401/i.test(errorTexto)) {\n  pista = 'Problema con la credencial del proveedor de IA.';\n} else if (/temperature|deprecated|not supported/i.test(errorTexto)) {\n  pista = 'Un parámetro del modelo no está soportado (por ejemplo la temperatura).';\n} else if (/parse|output parser|json/i.test(errorTexto)) {\n  pista = 'La salida del agente no cumplió el formato JSON del parser.';\n} else if (/context|too long|maximum/i.test(errorTexto)) {\n  pista = 'La conversación superó el límite de contexto del modelo.';\n} else if (/consultar_stock|tool/i.test(errorTexto)) {\n  pista = 'Falló una herramienta del agente (consultar_stock).';\n}\n\nconst setFields = $('Set Fields').first().json.message;\nconst chatId = esc(setFields.chatId);\nconst mensajeCliente = esc(limpiar($('Unir mensajes1').first().json.text ?? setFields.Body, 300));\n\nconst baseUrl = 'https://n8n-hostinger-n8n.ceuf3o.easypanel.host';\nconst linkEjecucion = `${baseUrl}/workflow/${$workflow.id}/executions/${$execution.id}`;\nconst hora = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });\n\nconst lineas = [\n  ':rotating_light: *Falló el agente conversacional*',\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\n\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\n\nlineas.push(\n  `*Cliente (chatId):* ${chatId}`,\n  `*Mensaje sin responder:* ${mensajeCliente || '(vacío)'}`,\n  `*Ejecución:* <${linkEjecucion}|Ver en n8n>`,\n  `*Hora:* ${hora}`\n);\n\nreturn [{\n  json: {\n    texto: lineas.join('\\n'),\n    respuestaCliente: 'Disculpá, tuvimos un problema técnico y no pude responderte. Un vendedor se va a comunicar con vos a la brevedad.',\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        8112
+      ],
+      "id": "3dc81ad3-20eb-4772-8f63-fe407f58ee32",
+      "name": "Code in JavaScript17"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3392,
+        8112
+      ],
+      "id": "780e10d7-405c-4745-a9a1-92e104403f30",
+      "name": "Send a message17",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\nconst setFields = $('Set Fields').first().json.message;\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(\n  `*Cliente (chatId):* ${esc(setFields.chatId)}`,\n  `*Mensaje que escribió:* ${esc(limpiar(setFields.Body, 200)) || '(vacío)'}`,\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        9824
+      ],
+      "id": "76c9bb28-e1b2-4d85-8706-5367ced10337",
+      "name": "Code in JavaScript18"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3088,
+        9824
+      ],
+      "id": "31bcd356-d5c7-402e-88ac-dabe48fd4083",
+      "name": "Send a message18",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\nconst setFields = $('Set Fields').first().json.message;\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(\n  `*Cliente (chatId):* ${esc(setFields.chatId)}`,\n  `*Mensaje que escribió:* ${esc(limpiar(setFields.Body, 200)) || '(vacío)'}`,\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        9552
+      ],
+      "id": "52c9a02a-6a98-48fb-b017-6d44463a01c7",
+      "name": "Code in JavaScript19"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3568,
+        9552
+      ],
+      "id": "85c46bcb-8930-4031-b426-56f59c2fa0bc",
+      "name": "Send a message19",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\nconst setFields = $('Set Fields').first().json.message;\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(\n  `*Cliente (chatId):* ${esc(setFields.chatId)}`,\n  `*Mensaje que escribió:* ${esc(limpiar(setFields.Body, 200)) || '(vacío)'}`,\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3888,
+        9120
+      ],
+      "id": "8ebcdf1f-bce4-4fb0-a173-dbe53aa3d2fd",
+      "name": "Code in JavaScript20"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        4080,
+        9120
+      ],
+      "id": "3fb4bb4e-ab93-4a08-98a4-b62f5e8fb50d",
+      "name": "Send a message20",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4384,
+        9088
+      ],
+      "id": "ff624c57-0622-4e01-a614-a5d6435f7bb3",
+      "name": "Code in JavaScript21"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        4576,
+        9088
+      ],
+      "id": "0ef53198-1a38-4e94-8660-8a4b89ce9307",
+      "name": "Send a message21",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        6752
+      ],
+      "id": "d5288381-4b74-4d8c-b518-ef28f6cbd118",
+      "name": "Code in JavaScript22"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3024,
+        6752
+      ],
+      "id": "8520a255-ed2d-440a-9c39-126e9380cc96",
+      "name": "Send a message22",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3472,
+        6464
+      ],
+      "id": "7058ff6b-6b53-4f1a-aa30-f23aaff4499b",
+      "name": "Code in JavaScript23"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3696,
+        6464
+      ],
+      "id": "5661a0c2-8065-487b-b5c4-e3b95fd01bfd",
+      "name": "Send a message23",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH cli AS (\n  SELECT c.telegram_user_id FROM clientes c\n  WHERE lower(c.correo_electronico) = lower($1)\n    AND EXISTS (\n      SELECT 1 FROM compras_clientes cc\n      WHERE lower(cc.email) = lower(c.correo_electronico)\n    )\n),\nn AS (\n  INSERT INTO nps_respuestas (telegram_user_id, puntaje, comentario)\n  SELECT telegram_user_id, $2::smallint, $3 FROM cli\n  RETURNING telegram_user_id, puntaje, comentario\n),\ne AS (\n  INSERT INTO eventos (telegram_user_id, canal, rol, contenido)\n  SELECT telegram_user_id, 'nps', 'cliente',\n         'Puntaje: ' || puntaje || ' | Comentario: ' || COALESCE(comentario, '')\n  FROM n\n)\nSELECT telegram_user_id, puntaje, comentario FROM n;",
+        "options": {
+          "queryReplacement": "={{ [ $json[\"Correo electrónico\"], $json[\"Puntaje (0 a 10): ¿qué tan probable es que nos recomiendes?\"], $json[\"Comentario\"] ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2848,
+        8352
+      ],
+      "name": "Registrar NPS1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "7c54b7b9-6322-4243-8085-14aee982ff17",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b2c7e1a4-0000-4000-8000-000000000002",
+              "leftValue": "={{ $json.telegram_user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3072,
+        8336
+      ],
+      "name": "¿Cliente encontrado?1",
+      "id": "973cd2d9-17a0-4245-a239-ed697348a13a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        8528
+      ],
+      "id": "48cc0147-ae6e-4490-bd21-aacc982758d8",
+      "name": "Code in JavaScript24"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3232,
+        8528
+      ],
+      "id": "18685a10-e0e8-4cc3-b0b0-194c786fb8b4",
+      "name": "Send a message24",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO analisis (telegram_user_id, evento_id, origen, sentimiento, intencion, etapa_funnel, objecion_principal, resumen, prioridad, accion_recomendada, clasificacion)\nVALUES ($1::bigint, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11);",
+        "options": {
+          "queryReplacement": "={{ [ $json.telegram_user_id, $json.evento_id, $json.origen, $json.sentimiento, $json.intencion, $json.etapa_funnel, $json.objecion_principal, $json.resumen, $json.prioridad, $json.accion_recomendada, $json.clasificacion ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4576,
+        8736
+      ],
+      "id": "c98b07c7-5e75-4b2a-ad39-32b8a46ab4bc",
+      "name": "Guardar analisis1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  c.telegram_user_id,\n  f.nombre_cliente, f.correo_electronico, f.ciudad,\n  f.interes_principal, f.producto_categoria, f.talle, f.mensaje_cliente,\n  COALESCE((\n    SELECT json_agg(json_build_object(\n             'producto', cc.producto, 'categoria', cc.categoria, 'talle', cc.talle,\n             'fecha', cc.fecha_compra, 'canal', cc.canal_venta, 'monto', cc.monto\n           ) ORDER BY cc.fecha_compra DESC)\n    FROM compras_clientes cc\n    WHERE lower(cc.email) = lower(f.correo_electronico)\n  ), '[]'::json) AS compras,\n  (\n    SELECT string_agg('[' || e.canal || '] ' || e.rol || ': ' || e.contenido, E'\\n' ORDER BY e.created_at)\n    FROM (\n      SELECT canal, rol, contenido, created_at\n      FROM eventos\n      WHERE telegram_user_id = c.telegram_user_id\n      ORDER BY created_at DESC\n      LIMIT 20\n    ) e\n  ) AS eventos,\n  (\n    SELECT e.id\n    FROM eventos e\n    WHERE e.telegram_user_id = c.telegram_user_id\n      AND e.rol = 'cliente'\n      AND e.canal = CASE WHEN $2::text = 'nps' THEN 'nps' ELSE 'telegram' END\n    ORDER BY e.created_at DESC\n    LIMIT 1\n  ) AS evento_id,\n  $2::text AS origen,\n  $3::int AS puntaje_nps,\n  $4::text AS comentario_nps\nFROM clientes c\nJOIN formulario f ON f.telegram_user_id = c.telegram_user_id\nWHERE c.telegram_user_id = $1::bigint;",
+        "options": {
+          "queryReplacement": "={{ [ $json.telegram_user_id ?? $('Set Fields').first().json.message.chatId, $json.puntaje !== undefined ? 'nps' : 'conversacion', $json.puntaje ?? null, $json.comentario ?? null ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3296,
+        8320
+      ],
+      "name": "Formulario, Eventos, Compras3",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "2a89832a-8a36-4857-b656-3f741329e1c6",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3616,
+        8336
+      ],
+      "id": "6b6d0de2-1f2b-4d90-8d8a-416ed9502179",
+      "name": "Code in JavaScript25"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3808,
+        8336
+      ],
+      "id": "5aa11b3c-04b1-417d-8bca-5f5157e11794",
+      "name": "Send a message25",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4832,
+        8752
+      ],
+      "id": "a1668e4b-10cb-40f6-ae58-31d7997b9768",
+      "name": "Code in JavaScript26"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        5024,
+        8752
+      ],
+      "id": "2d7a96af-b00f-4887-9091-ca3aa7f45c8c",
+      "name": "Send a message26",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9beef2f-fc80-4771-b5c5-7396fa11fbed",
+              "leftValue": "={{ $('Divisor de mensajes1').item.json.venta_realizada }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6032,
+        9312
+      ],
+      "id": "a71a0131-e69f-4c04-ae75-7d0dfec20047",
+      "name": "Venta realizada?1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const detalle = String($('Divisor de mensajes1').first().json.detalle ?? '');\n\n// Valor que sigue a una etiqueta, hasta el próximo \"|\"\nconst campo = etiqueta => {\n  const m = detalle.match(new RegExp(etiqueta + '\\\\s*:\\\\s*([^|]+)', 'i'));\n  return m ? m[1].trim() : '';\n};\n\nreturn [{\n  json: {\n    modelo: campo('Producto'),\n    categoria: campo('Categoría'),\n    talle: campo('Talle').replace(/\\D/g, ''),\n    cantidad: parseInt(campo('Cantidad'), 10) || 0,\n    monto: parseFloat(campo('Monto total').replace(/\\./g, '').replace(',', '.')) || 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6288,
+        9136
+      ],
+      "id": "f9f824e6-a43e-4408-bb4e-e31d006a90a0",
+      "name": "Parsear Detalle de la compra1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE productos_stock\n  SET stock = GREATEST(stock - $3::int, 0)\n  WHERE modelo = $1 AND talle = $2\n  RETURNING modelo, talle, stock\n),\naccion AS (\n  INSERT INTO acciones (telegram_user_id, tipo, motivo, datos)\n  SELECT $4::bigint, 'stock_descontado', 'Stock descontado por venta confirmada',\n         jsonb_build_object('modelo', modelo, 'talle', talle, 'cantidad', $3::int, 'stock_restante', stock)\n  FROM upd\n)\nSELECT modelo, talle, stock FROM upd;",
+        "options": {
+          "queryReplacement": "={{ [ $json.modelo, $json.talle, $json.cantidad, $('Set Fields').first().json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6464,
+        9136
+      ],
+      "id": "23af1012-bdd4-422e-876a-29e5aa34bf8f",
+      "name": "Reducir stock1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT a.origen, a.sentimiento, a.intencion, a.etapa_funnel, a.objecion_principal,\n       a.resumen, a.prioridad, a.accion_recomendada, a.clasificacion, a.created_at\nFROM (SELECT 1) x\nLEFT JOIN LATERAL (\n  SELECT * FROM analisis\n  WHERE telegram_user_id = $1::bigint\n  ORDER BY created_at DESC\n  LIMIT 1\n) a ON true;",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').first().json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6032,
+        7056
+      ],
+      "name": "Ultimo analisis1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "ead0efb9-7210-4d71-813b-160a8d087836",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pedido = $('Parsear Detalle de la compra1').first().json;\nconst tipoCliente = $('Tipo Cliente1').first().json.tipo_cliente;\n\n// Promociones: se calculan con los datos, no con lo que diga el agente\nconst candidatas = [\n  { nombre: 'primera_compra', porcentaje: 10, aplica: tipoCliente === 'nuevo' },\n  { nombre: 'recompra',       porcentaje: 15, aplica: tipoCliente === 'recurrente' },\n  { nombre: 'segundo_par',    porcentaje: 15, aplica: pedido.cantidad >= 2 && /urbano/i.test(pedido.categoria) },\n].filter(p => p.aplica);\n\n// No se acumulan entre sí: gana la de mayor porcentaje\nconst principal = candidatas.sort((a, b) => b.porcentaje - a.porcentaje)[0] ?? null;\n\nreturn [{\n  json: {\n    ...pedido,\n    descuento_aplicado: principal ? `${principal.porcentaje}%` : 'false',\n    promos_aplicadas: principal ? [principal.nombre] : [],\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6672,
+        9120
+      ],
+      "id": "b7c3f396-af5d-4a3c-a8f7-607957d5ad16",
+      "name": "Aplicar Descuento/s1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1000000-0000-4000-8000-000000000001",
+              "name": "telegram_user_id",
+              "value": "={{ $('Set Fields').first().json.message.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000002",
+              "name": "modelo",
+              "value": "={{ $('Parsear Detalle de la compra1').first().json.modelo }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000003",
+              "name": "categoria",
+              "value": "={{ $('Parsear Detalle de la compra1').first().json.categoria }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000004",
+              "name": "talle",
+              "value": "={{ $('Parsear Detalle de la compra1').first().json.talle }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000005",
+              "name": "cantidad",
+              "value": "={{ $('Parsear Detalle de la compra1').first().json.cantidad }}",
+              "type": "number"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000006",
+              "name": "monto",
+              "value": "={{ $('Parsear Detalle de la compra1').first().json.monto }}",
+              "type": "number"
+            },
+            {
+              "id": "f1000000-0000-4000-8000-000000000007",
+              "name": "descuento_aplicado",
+              "value": "={{ $json.descuento_aplicado }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6864,
+        9120
+      ],
+      "name": "Datos de la compra1",
+      "id": "f4d35a3f-ab97-426b-a6fa-e7fd86902554"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/check constraint/i.test(errorTexto)) pista = 'El valor no está permitido en la tabla.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\n// El contexto depende de qué disparador originó la ejecución\nconst intentar = fn => { try { return fn(); } catch (e) { return null; } };\nconst telegram = intentar(() => $('Set Fields').first().json.message);\nconst formWeb = intentar(() => $('On form submission').first().json);\nconst formNps = intentar(() => $('Formulario NPS').first().json);\n\nconst contexto = [];\nif (telegram) {\n  contexto.push(`*Cliente (chatId):* ${esc(telegram.chatId)}`);\n  contexto.push(`*Mensaje que escribió:* ${esc(limpiar(telegram.Body, 200)) || '(vacío)'}`);\n} else if (formWeb) {\n  contexto.push(`*Formulario web de:* ${esc(formWeb['Correo electrónico'])}`);\n} else if (formNps) {\n  contexto.push(`*Formulario NPS de:* ${esc(formNps['Correo electrónico'])}`);\n}\n\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(...contexto);\nlineas.push(\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7392,
+        9616
+      ],
+      "id": "3357b9a0-dcb4-473d-8668-dd7ae0f2d232",
+      "name": "Code in JavaScript27"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        7584,
+        9616
+      ],
+      "id": "0173702f-af14-49cf-b686-9e8dcefd53be",
+      "name": "Send a message27",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c3d8e2b5-0000-4000-8000-000000000003",
+              "leftValue": "={{ $('Divisor de mensajes1').first().json.ruta }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5648,
+        9328
+      ],
+      "name": "¿Hay ruta?1",
+      "id": "97ca2291-30a2-4f1c-8e7a-c74f095e0c00"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"analizar\": {\n      \"type\": \"boolean\",\n      \"description\": \"true si el cliente consultó o mostró interés concreto en producto, precio, talle o disponibilidad; false en caso contrario\"\n    }\n  },\n  \"required\": [\"analizar\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3136,
+        9536
+      ],
+      "id": "b2cd81c5-235c-48ca-9810-eeb39c67d4a0",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH compra AS (\n  INSERT INTO compras_clientes\n    (email, nombre, producto, categoria, talle, fecha_compra, canal_venta, monto, descuento_aplicado)\n  SELECT correo_electronico, nombre, $1, $2, $3, CURRENT_DATE, 'Telegram', $4::numeric, $5\n  FROM clientes WHERE telegram_user_id = $6::bigint\n  RETURNING producto, categoria, talle, monto, descuento_aplicado\n),\naccion AS (\n  INSERT INTO acciones (telegram_user_id, tipo, motivo, datos)\n  SELECT $6::bigint, 'compra_registrada', 'Compra confirmada por el cliente',\n         jsonb_build_object('producto', producto, 'categoria', categoria, 'talle', talle,\n                            'monto', monto, 'descuento_aplicado', descuento_aplicado)\n  FROM compra\n)\nSELECT count(*) AS compras_registradas FROM compra;",
+        "options": {
+          "queryReplacement": "={{ [ $json.modelo, $json.categoria, $json.talle, $json.monto, $json.descuento_aplicado, $('Set Fields').first().json.message.chatId ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7072,
+        9120
+      ],
+      "id": "0daf811d-23b3-4024-9695-a2d837b02678",
+      "name": "Registrar Compra del cliente1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO acciones (telegram_user_id, tipo, ruta, motivo, datos)\nSELECT $1::bigint, 'ruta_decidida', $2::text,\n       COALESCE(NULLIF($3::text, ''), 'Ruta decidida por el agente durante la conversación'),\n       jsonb_build_object('derivar', $4::text, 'promocion_ofrecida', $5::text)\nWHERE COALESCE((\n  SELECT ruta FROM acciones\n  WHERE telegram_user_id = $1::bigint AND tipo = 'ruta_decidida'\n  ORDER BY created_at DESC\n  LIMIT 1\n), '') <> $2::text\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').first().json.message.chatId, $('Divisor de mensajes1').first().json.ruta, $('Divisor de mensajes1').first().json.detalle, $('Divisor de mensajes1').first().json.derivar, $('Divisor de mensajes1').first().json.promocion_ofrecida ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5840,
+        9424
+      ],
+      "id": "7eb2377d-b53f-4327-af8e-daa5cba7b0dd",
+      "name": "Registrar acción1",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $('Hay data?1').first().json.correo_electronico }}",
+        "additionalFields": {
+          "leadStatus": "={{ $json.leadStatus }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        8144,
+        9312
+      ],
+      "name": "Actualizar estado en CRM1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "id": "b7895ec3-e018-49c2-881c-6525ec51ed96",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "zJWa9ynemalElyh4",
+          "name": "HubSpot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ruta = $('Divisor de mensajes1').first().json.ruta;\n\nconst estados = {\n  exploratorio: 'OPEN',\n  evaluacion: 'IN_PROGRESS',\n  listo_para_comprar: 'OPEN_DEAL',\n  recurrente: 'CONNECTED',\n  queja: 'IN_PROGRESS',\n};\n\nreturn [{ json: { leadStatus: estados[ruta] ?? 'OPEN' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7952,
+        9312
+      ],
+      "id": "a93dadab-9b7c-4ae8-a51f-97ddeb1e315c",
+      "name": "Definir estado1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4f9a3c6-0000-4000-8000-000000000004",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7728,
+        9328
+      ],
+      "name": "Cambio de estado?1",
+      "id": "dd997ddc-509c-41f0-900f-9eda403d2f65"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "g5a1b7d9-0000-4000-8000-000000000005",
+              "name": "id",
+              "value": "={{ $('Registrar acción1').isExecuted ? ($('Registrar acción1').first().json.id ?? '') : '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7472,
+        9104
+      ],
+      "name": "Traer id de la acción1",
+      "id": "8d8cc512-9994-4020-b068-055531e8aa2d"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $('Hay data?1').first().json.correo_electronico }}",
+        "additionalFields": {
+          "leadStatus": "OPEN_DEAL",
+          "lifeCycleStage": "opportunity"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        7280,
+        9104
+      ],
+      "name": "Marcar oportunidad en CRM1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "id": "86032c86-1763-40ab-968e-91b4247943fa",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "zJWa9ynemalElyh4",
+          "name": "HubSpot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "i7c3d9f1-0000-4000-8000-000000000007",
+                    "leftValue": "={{ $('Divisor de mensajes1').first().json.derivar }}",
+                    "rightValue": "venta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Venta"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "i7c3d9f1-0000-4000-8000-000000000008",
+                    "leftValue": "={{ $('Divisor de mensajes1').first().json.derivar }}",
+                    "rightValue": "reclamo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reclamo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "i7c3d9f1-0000-4000-8000-000000000009",
+                    "leftValue": "={{ $('Divisor de mensajes1').first().json.derivar }}",
+                    "rightValue": "consulta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Consulta"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Sin derivación"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3248,
+        7856
+      ],
+      "name": "Tipo de derivación1",
+      "id": "cc77b37f-d023-48d0-a6d2-e5dcc9793254"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Divisor de mensajes1').first().json;\nconst c = $('Hay data?1').first().json;\nconst chatId = $('Set Fields').first().json.message.chatId;\nconst tipo = $('Tipo Cliente1').first().json.tipo_cliente;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => esc(String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max));\n\nconst texto = [\n  ':moneybag: *Nueva venta confirmada*',\n  `*Cliente:* ${esc(c.nombre_cliente)} (${esc(tipo)})`,\n  `*Email:* ${esc(c.correo_electronico)}`,\n  `*Telegram ID:* ${esc(chatId)}`,\n  `*Ciudad:* ${esc(c.ciudad)}`,\n  `*Pedido:* ${limpiar(d.detalle, 400) || '(sin detalle)'}`,\n  '*Acción:* gestionar el pago y contactar al cliente',\n].join('\\n');\n\nreturn [{ json: { texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3472,
+        7552
+      ],
+      "name": "Aviso de venta1",
+      "id": "e7f6c4f6-51c8-43b4-8d81-df74adc6c596"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Divisor de mensajes1').first().json;\nconst c = $('Hay data?1').first().json;\nconst chatId = $('Set Fields').first().json.message.chatId;\nconst compras = $('Tipo Cliente1').first().json.compras ?? [];\nconst ultima = compras[0];\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => esc(String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max));\n\nconst titulo = d.derivar === 'reclamo'\n  ? ':rotating_light: *Reclamo de cliente (prioridad alta)*'\n  : ':question: *Consulta que el agente no pudo resolver*';\n\nconst texto = [\n  titulo,\n  `*Cliente:* ${esc(c.nombre_cliente)}`,\n  `*Email:* ${esc(c.correo_electronico)}`,\n  `*Telegram ID:* ${esc(chatId)}`,\n  `*Motivo:* ${limpiar(d.detalle, 500) || '(sin detalle)'}`,\n  ultima ? `*Última compra:* ${esc(ultima.producto)} (talle ${esc(ultima.talle)}), ${esc(ultima.fecha)}, ${esc(ultima.canal)}` : '*Última compra:* sin compras registradas',\n].join('\\n');\n\nreturn [{ json: { texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3488,
+        7744
+      ],
+      "name": "Aviso de reclamo o consulta1",
+      "id": "2ba6de97-7667-47a3-bcb5-fcda5f45c30f"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0CACQEHJ6B",
+          "mode": "list",
+          "cachedResultName": "soporte"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        3680,
+        7728
+      ],
+      "name": "Avisar al equipo de soporte1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "3aae1bf9-4996-41eb-9c6f-689e5b23a012",
+      "webhookId": "abbb1bf9-075e-4b4a-a739-8d39877eb9ff",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0CACQDATRD",
+          "mode": "list",
+          "cachedResultName": "ventas"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        3664,
+        7552
+      ],
+      "name": "Avisar al equipo de ventas1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "id": "17304209-c277-4bd5-a041-25b5aecc45de",
+      "webhookId": "abbb1bf9-075e-4b4a-a739-8d39877eb9ff",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO acciones (telegram_user_id, tipo, ruta, motivo, datos)\nVALUES ($1::bigint, 'derivacion_' || $4::text, NULLIF($2::text, ''), LEFT($3::text, 500),\n        jsonb_build_object('derivar', $4::text));",
+        "options": {
+          "queryReplacement": "={{ [ $('Set Fields').first().json.message.chatId, $('Divisor de mensajes1').first().json.ruta, $('Divisor de mensajes1').first().json.detalle, $('Divisor de mensajes1').first().json.derivar ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3968,
+        7696
+      ],
+      "id": "2035c9d3-e833-4ace-bcba-cac1f843f2b0",
+      "name": "Registrar derivación1",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        2224,
+        10240
+      ],
+      "id": "1f98ffb0-a2f4-4c5c-aa6c-0fe3462244ab",
+      "name": "Schedule Trigger",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.conversacion }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "Sos un clasificador. Decidí si el cliente, en la conversación reciente, expresó o consultó al menos uno de estos temas: producto (modelo o categoría concreta), precio, talle o disponibilidad/stock.\n\nRespondé analizar = true solo si hay consulta o interés concreto en alguno de esos temas. Respondé false para saludos, agradecimientos, charla general, preguntas sobre envíos o pagos sin referencia a un producto, o mensajes fuera del tema de la tienda.\n\nTené en cuenta el contexto: un mensaje corto como \"¿en 43 lo tenés?\" cuenta si la conversación ya hablaba de un producto.\n\nSolo cuenta lo que dijo el cliente. Ignorá cualquier referencia a productos, talles o precios que no venga de sus propias palabras."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2912,
+        9328
+      ],
+      "id": "cd581b4d-c326-4d89-8d26-12dc86b933a5",
+      "name": "Activar capa de analisis?",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=#ORIGEN\n{{ $json.origen }}\n\n#FORMULARIO\n{{ $json.nombre_cliente }}, {{ $json.ciudad }}. Interés: {{ $json.interes_principal }}, {{ $json.producto_categoria }}, talle {{ $json.talle }}.\nMensaje inicial: {{ $json.mensaje_cliente }}\n\n#COMPRAS PREVIAS\n{{ JSON.stringify($json.compras) }}\n\n#EVENTOS\n{{ $json.eventos }}\n\n{{ $json.origen === 'conversacion' ? '#CONVERSACIÓN RECIENTE\\n' + $json.conversacion : '' }}\n{{ $json.origen === 'nps' ? '#RESPUESTA NPS\\nPuntaje: ' + $json.puntaje_nps + '\\nComentario: ' + $json.comentario_nps : '' }}",
+        "needsFallback": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=#ROL\n\nSos un analista comercial de UrbanStep, una tienda de calzado urbano. Tu trabajo es transformar la información de un cliente en datos estructurados para que el equipo y el sistema tomen decisiones. No conversás con el cliente: solo clasificás.\n\n\n#ENTRADA\n\nSiempre recibís estas secciones, sin importar el origen:\n- #ORIGEN: conversacion o nps.\n- #FORMULARIO: los datos que el cliente completó en el formulario web y su mensaje inicial.\n- #COMPRAS PREVIAS: su historial de compras (producto, fecha, canal y monto). Vacío si es cliente nuevo.\n- #EVENTOS: otros registros del cliente, como el envío del formulario o una respuesta NPS.\n\n##ENTRADA TIPO CONVERSACIÓN (origen = conversacion)\nAdemás recibís:\n- #CONVERSACIÓN RECIENTE: los últimos mensajes del cliente por Telegram (solo lo que dijo él).\nCómo analizarla: basá la clasificación principalmente en la conversación reciente. El formulario y las compras previas son contexto, no la fuente principal. Si no hay conversación, basate en el mensaje inicial del formulario.\n\n##ENTRADA TIPO NPS (origen = nps)\nAdemás recibís:\n- #RESPUESTA NPS: el puntaje (0 a 10) y el comentario del cliente.\nCómo analizarla: basate en el puntaje y el comentario, e interpretalos junto con las compras previas para entender percepción y fidelización. En este caso no hay conversación.\n\nUna sección vacía significa que no hay información, no que el cliente no tenga interés. No la inventes.\n\nCómo usarlas:\n- Si el origen es conversacion, basá la clasificación principalmente en la conversación reciente. El formulario y las compras previas son contexto, no la fuente principal. Si no hay conversación, basate en el mensaje inicial del formulario.\n- Si el origen es nps, basate en el puntaje y el comentario, e interpretalos junto con las compras previas para entender percepción y fidelización.\n- Una sección vacía significa que no hay información, no que el cliente no tenga interés. No la inventes.\n\n\n#CAMPOS A COMPLETAR\n\n- sentimiento: positivo, neutro o negativo. Es el tono del cliente en lo más reciente, no el promedio histórico.\n- intencion: alta, media o baja.\n  - alta: quiere comprar ya (elige un modelo, pregunta por stock y talle para comprar, pago o envío).\n  - media: compara, pregunta precios o pide recomendaciones.\n  - baja: explora o consulta en general, sin avanzar.\n- etapa_funnel: awareness, consideracion, decision o post_venta.\n  - awareness: recién conoce la marca o explora sin un producto concreto.\n  - consideracion: evalúa modelos, precios o alternativas.\n  - decision: está listo para comprar o confirmando un pedido.\n  - post_venta: ya compró y consulta, reclama o recompra.\n- objecion_principal: precio, stock, talle, envio, confianza, ninguna u otra. Elegí la que más frena la compra según lo que dijo. Si no hay ninguna, ninguna.\n- resumen: una o dos frases con la necesidad real del cliente.\n- prioridad: alta, media o baja.\n  - alta: intención alta, reclamo o sentimiento negativo fuerte.\n  - media: interés real sin urgencia.\n  - baja: exploratorio o sin acción pendiente.\n- accion_recomendada: una frase corta y concreta con el siguiente paso, por ejemplo \"Notificar a ventas y enviar link de compra\", \"Enviar información y promociones del modelo de interés\", \"Nutrir con contenido y novedades\", \"Ofrecer beneficio de recompra\" o \"Priorizar post-venta y avisar al equipo\".\n- clasificacion: solo para origen nps. Para cualquier otro origen, ninguna. Usá el puntaje de la respuesta:\n  - 9 o 10: fidelizacion\n  - 8: sugerencia\n  - 7: observacion\n  - 5 o 6: post_venta\n  - 4 o menos: reclamo\n  Si el comentario contradice claramente el puntaje (por ejemplo un reclamo grave con puntaje alto), priorizá lo que dice el comentario.\n\n\n#REGLAS\n\n- Clasificá solo con evidencia del texto. No inventes datos ni supongas intenciones que el cliente no expresó.\n- Un cliente con muchas compras previas no es automáticamente positivo ni de alta intención: miralo por lo que dice ahora.\n- Un reclamo o una queja siempre tiene prioridad alta, sentimiento negativo y etapa post_venta.\n- Respondé siempre con todos los campos, usando exactamente los valores permitidos.\n- Escribí resumen y accion_recomendada en español."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        4016,
+        8752
+      ],
+      "id": "000d112f-7134-4d20-825e-0cf42252689f",
+      "name": "Analizar conversación",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=#CLIENTE\n{{ $json.nombre_cliente ?? 'Sin nombre' }} (ID {{ $json.telegram_user_id }})\n\n#CONVERSACIÓN\n{{ $json.conversacion }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=#ROL\nSos un analista comercial de UrbanStep, una tienda de calzado urbano. Tu única tarea es leer la conversación de un cliente con el asistente de ventas y detectar su intención de compra. No conversás con el cliente: solo clasificás.\n\n#ENTRADA\n\nRecibís la conversación completa, una línea por mensaje, con este formato:\n[fecha hora] cliente: texto\n[fecha hora] agente: texto\n\nLas líneas \"cliente\" son lo que escribió el cliente. Las líneas \"agente\" son las respuestas del asistente de ventas.\n\n#CRITERIO\n\nClasificá la intención en una de estas tres:\n\n- alta: el cliente quiere comprar ya. Elige un modelo, pide o confirma talle y stock para comprar, pregunta cómo pagar o confirma un pedido.\n- media: el cliente evalúa. Compara modelos, pregunta precios, pide recomendaciones o consulta disponibilidad sin decidir todavía.\n- baja: el cliente explora o consulta en general, sin avanzar hacia un producto concreto, o no mostró interés real.\n\n#REGLAS\n\n- Basate solo en lo que dijo el cliente. Ignorá lo que ofreció, mostró o sugirió el agente: que el agente mencione modelos o promociones no implica interés del cliente.\n- Pesá más lo más reciente. Si la intención cambió durante la conversación, usá la del final.\n- Si el cliente ya confirmó una compra y después solo hace consultas, la intención es media. Si pide comprar otro producto, es alta.\n- Un reclamo o una queja no es intención de compra: clasificá según si el cliente quiere seguir comprando.\n- Si hay una sola línea de saludo o ninguna consulta concreta, es baja.\n- No inventes datos ni supongas intenciones que el cliente no expresó.\n- Respondé siempre con uno de los valores exactos: alta, media o baja."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2656,
+        10240
+      ],
+      "id": "309e15df-0424-4f2e-9353-8082d1ab593e",
+      "name": "Evaluar tipo de seguimiento",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        2592,
+        10416
+      ],
+      "id": "6a7ebbc1-855c-46f1-aac4-aef149adcbac",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "jSSPazAQ2fMcW5sP",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2736,
+        10416
+      ],
+      "id": "41ce4409-4c59-492e-a18e-9d7a7912c48b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "QV46cpqxl9hMqFXE",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intencion\": {\n      \"type\": \"string\",\n      \"enum\": [\"alta\", \"media\", \"baja\"],\n      \"description\": \"Intención de compra del cliente según su conversación\"\n    },\n    \"motivo\": {\n      \"type\": \"string\",\n      \"description\": \"Una frase corta que justifica la clasificación, citando lo que dijo el cliente\"\n    },\n    \"ultimo_mensaje\": {\n      \"type\": \"string\",\n      \"description\": \"Fecha y hora del último mensaje del cliente, copiada exactamente del dato recibido\"\n    }\n  },\n  \"required\": [\"intencion\", \"motivo\", \"ultimo_mensaje\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        10416
+      ],
+      "id": "51da53fe-810d-4e62-b059-387445f67dd0",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intencion }}",
+                    "rightValue": "alta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d6792ad5-b6dc-41d8-9d84-cb681d7109d8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Intención Alta"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "387d8ec1-62a3-4fd4-9393-140b9f8fb8fd",
+                    "leftValue": "={{ $json.output.intencion }}",
+                    "rightValue": "media",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Intención Media"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e5ef08bf-2eb9-4d8a-bc4d-05220259de15",
+                    "leftValue": "={{ $json.output.intencion }}",
+                    "rightValue": "baja",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Intención Baja"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3248,
+        10160
+      ],
+      "id": "09e79a1e-d9b3-46b6-aba6-229428f06b01",
+      "name": "Nivel de intención"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3488,
+        10384
+      ],
+      "id": "6a156951-a528-4562-a6f0-cbf5e65d7cef",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c8e4a1b3-7d5f-4b69-9f28-3a4b6d0e1c23",
+              "leftValue": "={{ $json.horas_sin_respuesta }}",
+              "rightValue": 48,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1eb2798-c447-4d21-8817-e72a1e006e45",
+      "name": "¿Más de 48 hs sin respuesta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3488,
+        10176
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.correo_electronico }}",
+        "subject": "=¿Cerramos tu pedido? Todavía tenemos stock",
+        "emailType": "text",
+        "message": "=Hola, ¿cómo estás? Vimos que estabas por confirmar tu pedido. Todavía tenemos stock del modelo que te interesaba. ¿Querés que lo cerremos? Si tenés alguna duda, contame y te ayudo.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3760,
+        9952
+      ],
+      "id": "213b8390-4e2f-4cc5-a0dc-3231641b06ab",
+      "name": "Send a message",
+      "webhookId": "433cd879-0a19-449b-ae29-713ab86b2893",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6QI07RKLEdwQhoL3",
+          "name": "Gmail Marco"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.correo_electronico }}",
+        "subject": "¿Pudiste ver los modelos que te mostramos?",
+        "emailType": "text",
+        "message": "Hola, ¿pudiste ver los modelos que te mostramos? Si querés, te cuento más de alguno o te ayudo a elegir.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3760,
+        10160
+      ],
+      "id": "8f26df80-4a12-4817-b1ef-6e7d727d2748",
+      "name": "Send a message1",
+      "webhookId": "433cd879-0a19-449b-ae29-713ab86b2893",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6QI07RKLEdwQhoL3",
+          "name": "Gmail Marco"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.telegram_user_id,\n       f.nombre_cliente,\n       c.correo_electronico,\n       count(*) AS mensajes,\n       max(e.created_at) AS ultimo_mensaje,\n       string_agg(\n         '[' || to_char(e.created_at AT TIME ZONE 'America/Argentina/Buenos_Aires', 'DD/MM HH24:MI') || '] ' || e.rol || ': ' || e.contenido,\n         E'\\n' ORDER BY e.created_at) AS conversacion\nFROM eventos e\nJOIN clientes c ON c.telegram_user_id = e.telegram_user_id\nLEFT JOIN formulario f ON f.telegram_user_id = c.telegram_user_id\nWHERE e.canal = 'telegram'\nGROUP BY c.telegram_user_id, f.nombre_cliente, c.correo_electronico\nORDER BY max(e.created_at) DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2432,
+        10240
+      ],
+      "id": "0fcd1717-eb2b-4cd9-84f0-ef1e37b5c362",
+      "name": "Conversacion clientes",
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a3c1f7e2-5b8d-4e21-9c60-1d2f4a7b8e01",
+              "leftValue": "={{ $json.horas_sin_respuesta }}",
+              "rightValue": 24,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "989de002-dd1a-47b2-8a02-1d726cf29c86",
+      "name": "¿Más de 24 hs sin respuesta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3488,
+        9968
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7f1b4c6-5e3a-4c89-bfa4-ab1c3e7f8a9b",
+              "name": "correo_electronico",
+              "value": "={{ $('Conversacion clientes').all()[$itemIndex].json.correo_electronico }}",
+              "type": "string"
+            },
+            {
+              "id": "e8a2c5d7-6f4b-4d9a-80b5-bc2d4f8a9bac",
+              "name": "ultimo_mensaje",
+              "value": "={{ $('Conversacion clientes').all()[$itemIndex].json.ultimo_mensaje }}",
+              "type": "string"
+            },
+            {
+              "id": "f9b3d6e8-7a5c-4eab-91c6-cd3e5a9bacbd",
+              "name": "horas_sin_respuesta",
+              "value": "={{ Math.round((Date.now() - new Date($('Conversacion clientes').all()[$itemIndex].json.ultimo_mensaje).getTime()) / 360000) / 10 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3056,
+        10176
+      ],
+      "id": "98f99ef6-c999-44d7-96bc-3110a429bb42",
+      "name": "Calcular horas sin respuesta"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst nodo = $prevNode.name;\n\nconst esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst limpiar = (t, max) => String(t ?? '').replace(/`/g, \"'\").replace(/\\s+/g, ' ').trim().slice(0, max);\n\nconst rawError = item.error ?? item.message ?? 'Error desconocido';\nconst errorTexto = typeof rawError === 'string' ? rawError : JSON.stringify(rawError);\nconst error = esc(limpiar(errorTexto, 400));\n\nlet pista = '';\nif (/can't parse entities/i.test(errorTexto)) pista = 'Formato de texto que Telegram no puede interpretar.';\nelse if (/blocked by the user/i.test(errorTexto)) pista = 'El cliente bloqueó al bot.';\nelse if (/rate limit|429/i.test(errorTexto)) pista = 'Límite de uso del proveedor.';\nelse if (/overloaded|529|503/i.test(errorTexto)) pista = 'El proveedor de IA está saturado.';\nelse if (/api key|authentication|401/i.test(errorTexto)) pista = 'Problema con una credencial.';\nelse if (/syntax error/i.test(errorTexto)) pista = 'Revisar la query SQL del nodo.';\n\nconst setFields = $('Set Fields').first().json.message;\nconst lineas = [\n  `:rotating_light: *Falló el nodo \"${esc(nodo)}\"*`,\n  `*Workflow:* ${esc($workflow.name)}`,\n  `*Error:* \\`${error}\\``,\n];\nif (pista) lineas.push(`*Posible causa:* ${pista}`);\nlineas.push(\n  `*Cliente (chatId):* ${esc(setFields.chatId)}`,\n  `*Mensaje que escribió:* ${esc(limpiar(setFields.Body, 200)) || '(vacío)'}`,\n  `*Ejecución:* <https://n8n-hostinger-n8n.ceuf3o.easypanel.host/workflow/${$workflow.id}/executions/${$execution.id}|Ver en n8n>`,\n  `*Hora:* ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`\n);\n\nreturn [{ json: { texto: lineas.join('\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3408,
+        10576
+      ],
+      "id": "7f3eb206-e946-4c06-8397-eaa6257f6007",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2CK031UH",
+          "mode": "list",
+          "cachedResultName": "alerta-errores"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3600,
+        10576
+      ],
+      "id": "cc0498aa-b16e-4e2a-86f8-8f4dff86989d",
+      "name": "Send a message28",
+      "webhookId": "78d2a313-3431-41f7-9783-a02c2e96dfc5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "gp4HxWpsJKNi5mK7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Encuesta de satisfacción - UrbanStep",
+        "formDescription": "Contanos cómo fue tu experiencia con tu compra.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Correo electrónico",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Puntaje (0 a 10): ¿qué tan probable es que nos recomiendes?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "0"
+                  },
+                  {
+                    "option": "1"
+                  },
+                  {
+                    "option": "2"
+                  },
+                  {
+                    "option": "3"
+                  },
+                  {
+                    "option": "4"
+                  },
+                  {
+                    "option": "5"
+                  },
+                  {
+                    "option": "6"
+                  },
+                  {
+                    "option": "7"
+                  },
+                  {
+                    "option": "8"
+                  },
+                  {
+                    "option": "9"
+                  },
+                  {
+                    "option": "10"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Comentario",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "¡Gracias por tu opinión!"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        2624,
+        8352
+      ],
+      "name": "Formulario NPS",
+      "id": "207e82c1-9d82-4ab3-851e-6e239c7d22bd",
+      "webhookId": "74f396a8-165e-4f01-a4e6-e536183b852b",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set Fields').item.json.message.chatId }}",
+        "text": "={{ $('Divisor de mensajes1').item.json.part2 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4896,
+        7744
+      ],
+      "id": "5c548e43-fd96-4003-99c3-378b58485b45",
+      "name": "Parte 2",
+      "webhookId": "e3ca169f-51aa-4dfb-8202-2e88d8bd941f",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "telegramApi": {
+          "id": "DfDb27B11TiEcncA",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set Fields').item.json.message.chatId }}",
+        "text": "={{ $('Divisor de mensajes1').item.json.part3 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5568,
+        7680
+      ],
+      "id": "f7716162-7d5f-4199-ba49-5a89fcb25902",
+      "name": "Parte 3",
+      "webhookId": "e3ca169f-51aa-4dfb-8202-2e88d8bd941f",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "telegramApi": {
+          "id": "DfDb27B11TiEcncA",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Unir mensajes1').item.json.text }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=#ROL\n\nSos el asistente de ventas de UrbanStep, una tienda de calzado urbano. Atendés a los clientes por Telegram, brindás información sobre los productos y guiás la conversación hasta confirmar un pedido, momento en el cual derivás a un vendedor humano para gestionar el pago.\n\n#CONTEXTO\n\nTodos los clientes que te escriben ya completaron previamente el formulario web de UrbanStep, por lo que siempre tenés sus datos de contacto y su interés inicial.\n\nInformación que recibís ya resuelta, en cada mensaje (no necesitás pedirla ni consultarla):\n- Los datos del cliente y su tipo (nuevo o recurrente), con su historial de compras (ver #DATOS DEL CLIENTE).\n- El último análisis de lo que sabemos del cliente (ver #ÚLTIMO ANÁLISIS DEL CLIENTE).\n- El historial de la conversación.\n\nHerramienta que podés usar:\n- consultar_stock: te devuelve modelo, categoría, talle, stock, precio y link de producto del catálogo. Es la única fuente válida para afirmar disponibilidad, precios y links (ver #USO DE HERRAMIENTAS).\n\nFuera de esto, no tenés acceso a ninguna otra información ni sistema.\n\n#DATOS DEL CLIENTE\n\nDatos de referencia del formulario que el cliente completó antes de escribirte. Son información de fondo: no los menciones ni los uses por iniciativa propia.\n\n- Nombre: {{ $('Buscar Cliente1').first().json.nombre_cliente }}\n- Email: {{ $('Buscar Cliente1').first().json.correo_electronico }}\n- Ciudad: {{ $('Buscar Cliente1').first().json.ciudad }}\n- Interés principal: {{ $('Buscar Cliente1').first().json.interes_principal }}\n- Producto o categoría de interés: {{ $('Buscar Cliente1').first().json.producto_categoria }}\n- Talle de interés: {{ $('Buscar Cliente1').first().json.talle }}\n- Mensaje inicial: {{ $('Buscar Cliente1').first().json.mensaje_cliente }}\n- Tipo de cliente: {{ $('Tipo Cliente1').first().json.tipo_cliente }}\n- Historial de compras: {{ JSON.stringify($('Tipo Cliente1').first().json.compras) }}\n\nCuándo usarlos:\n- Recién cuando el cliente diga que completó el formulario, o cuando mencione interés en un modelo o categoría, retomá estos datos para continuar sin volver a preguntarle lo que ya respondió.\n- Antes de eso, tratá la conversación como si no los tuvieras: no los cites ni los asumas. (Sí podés usar el nombre para saludar de forma natural.)\n- Si el cliente indica algo distinto a lo del formulario (otro producto, talle o necesidad), lo que dice en la conversación tiene prioridad.\n- Nunca menciones que los datos vienen del formulario ni digas frases como \"vi que mencionaste…\" o \"en tu consulta inicial\".\n- Excepción: para elegir la categoría al llamar a consultar_stock usá siempre \"Producto o categoría de interés\", sin mencionar de dónde viene.\n\n#ÚLTIMO ANÁLISIS DEL CLIENTE\n\n{{ $('Ultimo analisis1').first().json.etapa_funnel\n  ? '- Origen: ' + $('Ultimo analisis1').first().json.origen\n    + '\\n- Sentimiento: ' + $('Ultimo analisis1').first().json.sentimiento\n    + '\\n- Intención de compra: ' + $('Ultimo analisis1').first().json.intencion\n    + '\\n- Etapa del funnel: ' + $('Ultimo analisis1').first().json.etapa_funnel\n    + '\\n- Objeción principal: ' + $('Ultimo analisis1').first().json.objecion_principal\n    + '\\n- Prioridad: ' + $('Ultimo analisis1').first().json.prioridad\n    + '\\n- Acción recomendada: ' + $('Ultimo analisis1').first().json.accion_recomendada\n    + '\\n- Resumen: ' + $('Ultimo analisis1').first().json.resumen\n    + ($('Ultimo analisis1').first().json.clasificacion && $('Ultimo analisis1').first().json.clasificacion !== 'ninguna' ? '\\n- Clasificación: ' + $('Ultimo analisis1').first().json.clasificacion : '')\n  : 'Sin análisis previo: es una conversación nueva o todavía no hay información suficiente. Guiate solo por la conversación y los datos del cliente.' }}\n\nCómo usarlo:\n- Es una guía de contexto sobre lo que ya sabemos del cliente, producido por el sistema a partir de mensajes anteriores. Si no hay análisis, ignoralo y no lo menciones.\n- Lo que el cliente dice en la conversación actual tiene prioridad sobre el análisis: puede estar desactualizado.\n- Usalo para ajustar el tono y el enfoque, por ejemplo: si la objeción principal es el precio, tenelo presente al recomendar; si el sentimiento es negativo o la prioridad es alta, respondé con más empatía y derivá antes.\n- Nunca digas que existe un análisis, ni menciones su contenido ni sus etiquetas (\"intención alta\", \"etapa decisión\", etc.).\n\n#TAREA\n\nTu objetivo en cada conversación es:\n\nIdentificar si la persona que te escribe es un cliente nuevo o uno que ya compró antes, usando el contexto que te provee el sistema.\nAyudar a definir un pedido concreto (producto, talle, cantidad) cuando el cliente muestre intención de compra. El talle debe ser un número entero entre 35 y 45; si el cliente indica un valor fuera de ese rango o no numérico, pedile que lo corrija antes de continuar.\nConfirmar el pedido con el cliente antes de avanzar.\nDerivar la conversación a un vendedor humano para que gestione el pago, una vez que el cliente confirmó el pedido.\nSi un cliente que ya compró vuelve con una consulta posterior, atenderlo usando el contexto disponible, y derivar a un humano si la consulta lo requiere.\nEl detalle de cómo actuar en cada una de estas etapas está definido en #ESTADOS DEL AGENTE.\n\n#ESTADOS DEL AGENTE\n\n##BIENVENIDA\nPrimer mensaje de la conversación. Saludá de forma natural, ajustando el tono según si el contexto indica que es un cliente nuevo o recurrente.\nSi el cliente ya hace una consulta en su primer mensaje, respondela en ese mismo mensaje: si pregunta por modelos, usá consultar_stock y nombrá los modelos disponibles (con su precio y moneda). Si solo saluda, no consultes nada.\nNo recites los datos del formulario (\"vi que te interesa…\"): usalos solo para ordenar la respuesta, por ejemplo mostrando primero los modelos de la categoría de interés. Cerrá con una sola pregunta de seguimiento.\nPasá a #DANDO_INFO cuando el cliente responda con una consulta general. Si ya en su primer mensaje muestra intención de compra, pasá directo a #TOMANDO_PEDIDO. Si menciona una compra anterior, un reclamo o una garantía, pasá a #POST_VENTA.\n\n##DANDO_INFO\nRespondé preguntas generales sobre productos o talles. Pasá a #TOMANDO_PEDIDO cuando el cliente muestre intención de compra (elige un modelo, pide talle y disponibilidad para comprar, pregunta cómo pagar). Pasá a #POST_VENTA si menciona una compra anterior, un reclamo o una garantía. Pasá a #DERIVANDO_HUMANO si la consulta está fuera de tu alcance. Si no ocurre nada de esto, seguí en #DANDO_INFO.\n\n##TOMANDO_PEDIDO\nEl cliente mostró intención de compra. Recolectá producto, categoría, talle (entero entre 35 y 45, validando el rango), cantidad, monto y canal de venta. Si falta algún dato, pedilo antes de avanzar.\nPasá a #CONFIRMANDO_COMPRA cuando tengas todos los datos del pedido completos y válidos. Si el cliente desiste y vuelve a hacer preguntas generales, volvé a #DANDO_INFO.\n\n##CONFIRMANDO_COMPRA\nRepetí el pedido completo (producto, talle, cantidad, monto) y pedí confirmación explícita al cliente. Si pide algún cambio, volvé a #TOMANDO_PEDIDO.\nPasá a #DERIVANDO_HUMANO cuando el cliente confirme de forma explícita. Si pide un cambio, volvé a #TOMANDO_PEDIDO. Si desiste, volvé a #DANDO_INFO.\n\n##DERIVANDO_HUMANO\nSe llega a este estado en dos casos:\n- Tras confirmar una compra: avisá al cliente que un vendedor se va a comunicar con él para gestionar el pago. Completá venta_realizada = true, derivar = \"venta\" y, en detalle, el pedido (producto, categoría, talle, cantidad y monto total en USD).\n- Al confirmar una compra, el aviso al cliente es únicamente que un vendedor se va a comunicar con él para gestionar el pago. No agregues nada más sobre qué va a coordinar el vendedor.\n- Ante cualquier consulta fuera de tu alcance: avisale que un vendedor se va a comunicar con él para resolverlo. Completá derivar = \"reclamo\" si es una queja, un reclamo, una garantía o una devolución, o derivar = \"consulta\" para cualquier otra duda que no podés resolver, y en detalle un resumen breve del problema.\nSi el cliente vuelve a escribir sobre el mismo tema después de derivarlo, no intentes resolverlo: recordale que un vendedor se va a comunicar con él a la brevedad, y completá derivar = \"ninguna\" y venta_realizada = false (el equipo ya fue avisado). Si consulta algo que sí podés resolver (productos, talles, otros modelos), respondé con normalidad.\nPasá a #DANDO_INFO, #TOMANDO_PEDIDO o #POST_VENTA cuando el cliente abra una consulta nueva que corresponda a alguno de esos estados.\n\n##POST_VENTA\nEl cliente menciona algo que requiere contexto comercial (recompra, garantía, reclamo sobre algo ya comprado). Usá el historial de compras que figura en #DATOS DEL CLIENTE (producto, fecha, canal y monto) para responder con ese contexto. Derivá a #DERIVANDO_HUMANO si la consulta lo requiere.\nPasá a #DERIVANDO_HUMANO si es un reclamo, devolución o algo que no podés resolver con la información disponible. Pasá a #TOMANDO_PEDIDO si el cliente quiere recomprar. Si solo consultaba un dato de su compra y quedó resuelto, volvé a #DANDO_INFO.\n\n#USO DE HERRAMIENTAS\n\n- consultar_stock: llamala SIEMPRE antes de responder cualquier consulta sobre modelos, talles, precios o disponibilidad, incluso en el primer mensaje de la conversación. Respondé en ese mismo mensaje con los datos que devuelve (modelo, precio en USD y talles con stock). No le preguntes al cliente si quiere que se lo muestres: mostráselo.\n- Categoría: cuando el cliente pregunte por modelos de forma general (por ejemplo \"¿qué modelos tienen?\"), llamala con categoria = \"{{ $('Buscar Cliente1').first().json.producto_categoria }}\" y mostrale solo esa categoría. Si ese valor está vacío, llamala sin categoría. No muestres ni nombres otras categorías, salvo que el cliente las pida (\"¿y de running?\", \"mostrame todo\"): en ese caso consultá la categoría que pidió, o sin categoría si pide ver todo. Un modelo o categoría que nombre el cliente tiene prioridad sobre la del formulario.\n- Si el cliente no indicó un modelo ni un talle, usá el filtro de categoría de arriba y el talle que conocés por su contexto, y presentá un resumen corto (un máximo de 4 modelos).\n- Si no devuelve filas o el stock es 0, decíselo y ofrecé alternativas. Nunca afirmes stock o precios que no vengan de esta herramienta.\n- Precios y cifras: copiá el precio exactamente como lo devuelve consultar_stock, sin redondear, sin cambiar decimales ni inventar valores. Si la herramienta devuelve \"149,00 USD\", escribí \"149,00 USD\". No informes ningún precio que no haya venido de la herramienta.\n\n#RUTAS DEL CLIENTE\n\nSegún el tipo de cliente y lo que dice en la conversación (ayudate también del último análisis), elegí una de estas rutas:\n\n1. Listo para comprar (quiere un modelo, pide stock, talle o pago): confirmá el pedido y derivalo a ventas, como indica ##CONFIRMANDO_COMPRA. Compartí el link del producto (url_producto). Si aplica alguna promoción vigente, mencionala.\n\n2. En evaluación (compara modelos, pregunta precios): enviá la información del modelo (precio, stock y link) y mencioná la promoción que le corresponda.\n\n3. Exploratorio (todavía no sabe qué busca): nurturing por categoría o uso, no por modelo. Preguntá para qué lo va a usar (uso diario, running, deporte, outdoor) y recomendá uno o dos modelos de esa categoría con consultar_stock. No ofrezcas promociones hasta que muestre interés en un modelo.\n\n4. Cliente recurrente (tiene compras previas): reconocé su compra anterior y ofrecele los beneficios de cliente recurrente. Recomendá un modelo que complemente lo que ya compró.\n\n5. Cliente con queja: no ofrezcas promociones ni beneficios. Respondé con empatía y derivalo a ventas, como indica ##DERIVANDO_HUMANO.\n\nPromociones vigentes (son las únicas que podés mencionar):\n- Primera compra: 10% de descuento. Solo para clientes nuevos.\n- Segundo par: 15% de descuento. Solo si el pedido tiene 2 o más pares de la categoría Urbano.\n\nBeneficios para clientes recurrentes:\n- Recompra: 15% de descuento en cualquier modelo. Solo si el tipo de cliente es recurrente.\n- Acceso anticipado a nuevos modelos y reposiciones de stock.\n\nCómo aplicarlos y hablar de ellos:\n- Las promociones no se acumulan: al cliente le corresponde una sola, la de mayor porcentaje.\n- Al informar un descuento, decile el porcentaje que le corresponde y no menciones nunca una promoción que no cumpla su condición.\n- Mencioná el porcentaje, no calcules el precio final: el monto definitivo lo confirma el vendedor al gestionar el pago.\n- No inventes promociones ni beneficios distintos de estos.\n\n#FORMATO\n\nTu salida es siempre un objeto JSON con los siguientes campos, y nada más (sin explicaciones fuera del JSON, sin mencionar la base de datos ni los estados):\n\n- mensaje: el texto para el cliente. Si aborda más de un tema distinto, dividilo en bloques separados por |||, hasta un máximo de 3. Cada bloque debe ser un mensaje autocontenido y natural, como mensajes consecutivos de Telegram. No uses ||| dentro de un mismo bloque ni cuando el mensaje trata un solo tema. Nunca separes mensajes con saltos de línea: para eso usá siempre |||.\n- venta_realizada: true solo en el mensaje en que el cliente confirma de forma explícita el pedido. En cualquier otro caso, false.\n- derivar: \"ninguna\", \"venta\", \"reclamo\" o \"consulta\". Es \"ninguna\" salvo cuando derivás al cliente por primera vez (ver ##DERIVANDO_HUMANO).\n- Escribí en texto plano: no uses formato Markdown (nada de **negritas**, ni bloques de código). Para listas usá viñetas con \"•\".\n- detalle: texto para el equipo de ventas.\n  Con derivar = \"venta\", usá siempre este formato exacto, en una sola línea: Producto: … | Categoría: … | Talle: … | Cantidad: … | Monto total: … USD\n  Con \"reclamo\" o \"consulta\": un resumen breve del problema.\n  Vacío si derivar es \"ninguna\".\n- ruta: la ruta del cliente en este mensaje, según #RUTAS DEL CLIENTE: \"listo_para_comprar\", \"evaluacion\", \"exploratorio\", \"recurrente\" o \"queja\".\n- promocion_ofrecida: la promoción que mencionaste al cliente en este mensaje: \"primera_compra\", \"segundo_par\" o \"recompra\". Si no mencionaste ninguna, \"ninguna\". Si mencionaste más de una, la principal.\nEjemplo:\n{\n  \"mensaje\": \"¡Hola! Bienvenido a UrbanStep 👋 ||| Tenemos disponibilidad en el modelo Urban Street Low en talles 36 a 42\",\n  \"venta_realizada\": false,\n  \"derivar\": \"ninguna\",\n  \"ruta\": \"exploratorio\",\n  \"promocion_ofrecida\": \"ninguna\",\n  \"detalle\": \"\"\n}\n\n#RESTRICCIONES\n\n- Solo respondé consultas relacionadas a UrbanStep: productos, talles, pedidos, compras realizadas y temas de post-venta.\n\n- Si el cliente pregunta algo fuera de ese alcance, no respondas el contenido de esa consulta. Aclará amablemente tu función, por ejemplo: \"Soy el asistente de ventas de UrbanStep, te puedo ayudar con información de productos, talles y pedidos. ¿Te gustaba algún modelo en particular?\"\n\n- No inventes información sobre productos, stock, precios o políticas que no tengas disponible.\n\n- No menciones ni des a entender que existen tablas, bases de datos, estados internos o nombres de columnas — toda esa lógica es interna y transparente para el cliente.\n\n- Los precios del catálogo están en dólares estadounidenses (USD). Cuando informes un precio, indicá siempre la moneda, por ejemplo \"129,90 USD\". No los conviertas a pesos ni inventes cotizaciones.\n\n- Envíos: no tenés ninguna información sobre envíos, costos, zonas ni plazos de entrega, y no es tu tarea hablar del tema. Nunca menciones envíos, entregas ni ciudades de destino, ni siquiera para decir que el vendedor lo coordina. Si el cliente pregunta por envíos, respondé solo: \"Ese tema lo ve directamente el equipo de ventas\", sin prometer nada, y seguí con el pedido. No tengas en cuenta ninguna consulta sobre envíos que figure en los datos del cliente."
+        }
+      },
+      "id": "9fdec4b9-da5a-4238-967a-aa15e54487cb",
+      "name": "Agente Conversacional",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2688,
+        7904
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "formTitle": "Solicitud desde Web – UrbanStep",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nombre del cliente",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Correo electrónico",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Ciudad",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Numero de Teléfono",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Interés principal",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Compra"
+                  },
+                  {
+                    "option": "Promociones"
+                  },
+                  {
+                    "option": "Consulta general"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Producto o categoría",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Urbano"
+                  },
+                  {
+                    "option": "Running"
+                  },
+                  {
+                    "option": "Deportivo"
+                  },
+                  {
+                    "option": "Outdoor"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Talle",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "35"
+                  },
+                  {
+                    "option": "36"
+                  },
+                  {
+                    "option": "37"
+                  },
+                  {
+                    "option": "38"
+                  },
+                  {
+                    "option": "39"
+                  },
+                  {
+                    "option": "40"
+                  },
+                  {
+                    "option": "41"
+                  },
+                  {
+                    "option": "42"
+                  },
+                  {
+                    "option": "43"
+                  },
+                  {
+                    "option": "44"
+                  },
+                  {
+                    "option": "45"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Mensaje del cliente",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "¡Gracias por tu solicitud! Ahora escribinos por Telegram a @PruebaAsistenteMarco1 y te atendemos."
+            }
+          }
+        }
+      },
+      "id": "a59d9801-97b1-4951-8ee8-92f5c00c593b",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        2256,
+        6480
+      ],
+      "webhookId": "ec48a7c4-c7dd-46df-9d8a-fba4f038b8bf"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH nuevo AS (\n  INSERT INTO clientes (telegram_user_id, correo_electronico, nombre)\n  VALUES ($1::bigint, $2, $3)\n  ON CONFLICT DO NOTHING\n  RETURNING telegram_user_id\n),\nf AS (\n  INSERT INTO formulario (telegram_user_id, nombre_cliente, correo_electronico, ciudad, interes_principal, producto_categoria, talle, mensaje_cliente)\n  SELECT telegram_user_id, $3, $2, $4, $5, $6, $7, $8 FROM nuevo\n),\ne AS (\n  INSERT INTO eventos (telegram_user_id, canal, rol, contenido)\n  SELECT telegram_user_id, 'formulario', 'cliente',\n         'Interés: ' || $5 || ' | Producto: ' || $6 || ' | Talle: ' || $7 || ' | Mensaje: ' || $8\n  FROM nuevo\n)\nSELECT telegram_user_id AS id FROM nuevo;",
+        "options": {
+          "queryReplacement": "={{ [ $json[\"Numero de Teléfono\"], $json[\"Correo electrónico\"], $json[\"Nombre del cliente\"], $json[\"Ciudad\"], $json[\"Interés principal\"], $json[\"Producto o categoría\"], $json[\"Talle\"], $json[\"Mensaje del cliente\"] ] }}"
+        }
+      },
+      "id": "577ec538-2af5-413b-9fb2-84f0203e5241",
+      "name": "Cargar rtas del formulario",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2496,
+        6480
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "postgres": {
+          "id": "rVOL4Wh8o08Yipro",
+          "name": "Supabase"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1bb040e4-4941-4037-a96c-2be552c7233f",
+              "leftValue": "={{ $json.Insertar }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2896,
+        6464
+      ],
+      "id": "43f4bbe9-ba5c-46ab-a310-2cc687133f80",
+      "name": "Insertar?"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $('On form submission').item.json[\"Correo electrónico\"] }}",
+        "additionalFields": {
+          "firstName": "={{ $('On form submission').item.json[\"Nombre del cliente\"] }}",
+          "leadStatus": "NEW",
+          "phoneNumber": "={{ $('On form submission').item.json[\"Numero de Teléfono\"] }}"
+        },
+        "options": {}
+      },
+      "id": "c192b3af-c68c-4c64-9375-5632f2f16776",
+      "name": "Cargar Lead",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        3168,
+        6448
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "zJWa9ynemalElyh4",
+          "name": "HubSpot"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "message_chat_id",
+              "name": "message.chatId",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "message_content",
+              "name": "message.Body",
+              "value": "={{ $json.message.text ? $json.message.text : $json.message.voice ? $json.message.voice.file_id : $json.message.photo ? $json.message.photo[$json.message.photo.length - 1].file_id : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "2384b82e-1dc1-40f5-9999-9be1846c5bee",
+              "name": "message.message_id",
+              "value": "={{ $json.message.message_id }}",
+              "type": "string"
+            },
+            {
+              "id": "message_timestamp",
+              "name": "message.timestamp",
+              "value": "={{ DateTime.now().toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "8a4b14f6-9b6f-4d14-ace2-bd56b88a931c",
+              "name": "message.content_type",
+              "value": "={{ $json.message.text ? 'text' : $json.message.voice ? 'audio' : $json.message.photo ? 'image' : 'unknown' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4e985342-aa96-4d4c-a884-63101fbd052f",
+      "name": "Set Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        2416,
+        7120
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "cbee9d4a-6113-4d7b-a69a-c6b820e709b7",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2208,
+        7120
+      ],
+      "webhookId": "00a786e8-d789-424f-b70f-c40a3a5bd7ee",
+      "credentials": {
+        "telegramApi": {
+          "id": "DfDb27B11TiEcncA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ca7f6b97-92d0-4ffd-9cf9-40768038882d",
+              "leftValue": "={{ $json.message.Body }}",
+              "rightValue": "/reset",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "0dd53113-176d-4376-87c9-d1deed47bfcf",
+              "leftValue": "={{ $json.message.chatId }}",
+              "rightValue": "1409704240",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "78646063-0486-4e0f-9ad3-7453fed4be53",
+      "name": "Reset?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2640,
+        7120
+      ]
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Nombre del cliente": "Marco Santini",
+          "Correo electrónico": "marcosantini03@gmail.com",
+          "Ciudad": "Vicente Lopez",
+          "Numero de Teléfono": 1409704240,
+          "Interés principal": "Compra",
+          "Producto o categoría": "Urbano",
+          "Talle": "43",
+          "Mensaje del cliente": "",
+          "submittedAt": "2026-10-22T20:20:27.761-03:00",
+          "formMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 342783513,
+          "message": {
+            "message_id": 1450,
+            "from": {
+              "id": 1409704240,
+              "is_bot": false,
+              "first_name": "Marco",
+              "last_name": "Santini",
+              "language_code": "es"
+            },
+            "chat": {
+              "id": 1409704240,
+              "first_name": "Marco",
+              "last_name": "Santini",
+              "type": "private"
+            },
+            "date": 1792711289,
+            "text": "/start",
+            "entities": [
+              {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+              }
+            ]
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Push message buffer1": {
+      "main": [
+        [
+          {
+            "node": "Get message buffer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get message buffer1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete message buffer1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete message buffer1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "JSON parse1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON parse1": {
+      "main": [
+        [
+          {
+            "node": "Sort1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Unir mensajes1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir mensajes1": {
+      "main": [
+        [
+          {
+            "node": "Tipo Cliente1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Conversacional",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Conversacional",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Get message buffer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos duplicados?1": {
+      "main": [
+        [
+          {
+            "node": "Insertar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay data?1": {
+      "main": [
+        [
+          {
+            "node": "Mensaje predeterminado?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Divisor de mensajes1": {
+      "main": [
+        [
+          {
+            "node": "Tipo de derivación1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "Parte 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir partes 1-2-": {
+      "main": [
+        [
+          {
+            "node": "Registrar respuesta agente1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay Parte 3?1": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unir partes 1-2-",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "¿Hay Parte 2?1": {
+      "main": [
+        [
+          {
+            "node": "Wait5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unir partes 1-2-",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Wait5": {
+      "main": [
+        [
+          {
+            "node": "Parte 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parte ": {
+      "main": [
+        [
+          {
+            "node": "¿Hay Parte 2?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Conversacional",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar mensaje cliente1": {
+      "main": [
+        [
+          {
+            "node": "Ultimo analisis1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensaje predeterminado?1": {
+      "main": [
+        [
+          {
+            "node": "Push message buffer1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pedir formulario1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar respuesta agente1": {
+      "main": [
+        [
+          {
+            "node": "Historial de conversacion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historial de conversacion1": {
+      "main": [
+        [
+          {
+            "node": "Activar capa de analisis?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Activar capa de analisis?",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Activar capa de analisis?",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Formulario, Eventos, Compras2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Hay ruta?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulario, Eventos, Compras2": {
+      "main": [
+        [
+          {
+            "node": "Conversación o NPS?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript20",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo Cliente1": {
+      "main": [
+        [
+          {
+            "node": "Registrar mensaje cliente1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_stock1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Conversacional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analizar conversación",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analizar conversación",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Conversación o NPS?1": {
+      "main": [
+        [
+          {
+            "node": "Analizar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parseo Análisis1": {
+      "main": [
+        [
+          {
+            "node": "Guardar analisis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript14": {
+      "main": [
+        [
+          {
+            "node": "Send a message14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Cliente1": {
+      "main": [
+        [
+          {
+            "node": "Hay data?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript15": {
+      "main": [
+        [
+          {
+            "node": "Send a message15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript16": {
+      "main": [
+        [
+          {
+            "node": "Send a message16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript17": {
+      "main": [
+        [
+          {
+            "node": "Send a message17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript18": {
+      "main": [
+        [
+          {
+            "node": "Send a message18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript19": {
+      "main": [
+        [
+          {
+            "node": "Send a message19",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript20": {
+      "main": [
+        [
+          {
+            "node": "Send a message20",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript21": {
+      "main": [
+        [
+          {
+            "node": "Send a message21",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript22": {
+      "main": [
+        [
+          {
+            "node": "Send a message22",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript23": {
+      "main": [
+        [
+          {
+            "node": "Send a message23",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar NPS1": {
+      "main": [
+        [
+          {
+            "node": "¿Cliente encontrado?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cliente encontrado?1": {
+      "main": [
+        [
+          {
+            "node": "Formulario, Eventos, Compras3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript24": {
+      "main": [
+        [
+          {
+            "node": "Send a message24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar analisis1": {
+      "main": [
+        [
+          {
+            "node": "¿Hay ruta?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript26",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulario, Eventos, Compras3": {
+      "main": [
+        [
+          {
+            "node": "Conversación o NPS?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript25": {
+      "main": [
+        [
+          {
+            "node": "Send a message25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript26": {
+      "main": [
+        [
+          {
+            "node": "Send a message26",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Venta realizada?1": {
+      "main": [
+        [
+          {
+            "node": "Parsear Detalle de la compra1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cambio de estado?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Detalle de la compra1": {
+      "main": [
+        [
+          {
+            "node": "Reducir stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reducir stock1": {
+      "main": [
+        [
+          {
+            "node": "Aplicar Descuento/s1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript27",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ultimo analisis1": {
+      "main": [
+        [
+          {
+            "node": "Agente Conversacional",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar Descuento/s1": {
+      "main": [
+        [
+          {
+            "node": "Datos de la compra1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos de la compra1": {
+      "main": [
+        [
+          {
+            "node": "Registrar Compra del cliente1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript27": {
+      "main": [
+        [
+          {
+            "node": "Send a message27",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay ruta?1": {
+      "main": [
+        [
+          {
+            "node": "Venta realizada?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar acción1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Activar capa de analisis?",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Compra del cliente1": {
+      "main": [
+        [
+          {
+            "node": "Marcar oportunidad en CRM1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript27",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar acción1": {
+      "main": [
+        [
+          {
+            "node": "Venta realizada?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definir estado1": {
+      "main": [
+        [
+          {
+            "node": "Actualizar estado en CRM1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cambio de estado?1": {
+      "main": [
+        [
+          {
+            "node": "Definir estado1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer id de la acción1": {
+      "main": [
+        [
+          {
+            "node": "Cambio de estado?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar oportunidad en CRM1": {
+      "main": [
+        [
+          {
+            "node": "Traer id de la acción1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de derivación1": {
+      "main": [
+        [
+          {
+            "node": "Aviso de venta1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aviso de reclamo o consulta1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aviso de reclamo o consulta1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parte ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso de venta1": {
+      "main": [
+        [
+          {
+            "node": "Avisar al equipo de ventas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso de reclamo o consulta1": {
+      "main": [
+        [
+          {
+            "node": "Avisar al equipo de soporte1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al equipo de soporte1": {
+      "main": [
+        [
+          {
+            "node": "Registrar derivación1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar derivación1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al equipo de ventas1": {
+      "main": [
+        [
+          {
+            "node": "Registrar derivación1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar derivación1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar derivación1": {
+      "main": [
+        [
+          {
+            "node": "Parte ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parte ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar acción": {
+      "main": [
+        []
+      ]
+    },
+    "¿Hay ruta?": {
+      "main": [
+        []
+      ]
+    },
+    "Registrar derivación": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Tipo de derivación": {
+      "main": [
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "Agente Conversacional": {
+      "main": [
+        [
+          {
+            "node": "Divisor de mensajes1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ultimo analisis": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Formulario, Eventos, Compras1": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Evaluar tipo de seguimiento",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Conversacion clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activar capa de analisis?": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript19",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar conversación": {
+      "main": [
+        [
+          {
+            "node": "Parseo Análisis1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript21",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Evaluar tipo de seguimiento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Evaluar tipo de seguimiento",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Evaluar tipo de seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Calcular horas sin respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nivel de intención": {
+      "main": [
+        [
+          {
+            "node": "¿Más de 24 hs sin respuesta?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Más de 48 hs sin respuesta?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Más de 48 hs sin respuesta?": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversacion clientes": {
+      "main": [
+        [
+          {
+            "node": "Evaluar tipo de seguimiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular horas sin respuesta": {
+      "main": [
+        [
+          {
+            "node": "Nivel de intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Más de 24 hs sin respuesta?": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message28",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulario NPS": {
+      "main": [
+        [
+          {
+            "node": "Registrar NPS1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parte 2": {
+      "main": [
+        [
+          {
+            "node": "¿Hay Parte 3?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parte 3": {
+      "main": [
+        [
+          {
+            "node": "Unir partes 1-2-",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Cargar rtas del formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar rtas del formulario": {
+      "main": [
+        [
+          {
+            "node": "Datos duplicados?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript22",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar?": {
+      "main": [
+        [
+          {
+            "node": "Cargar Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar Lead": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript23",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Fields": {
+      "main": [
+        [
+          {
+            "node": "Reset?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset?": {
+      "main": [
+        [
+          {
+            "node": "Reset1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Cliente1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "f14936b4-cf69-4b60-9af7-839658ff02be",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b5947e419e08758b08bd2aa74f40d7c4d5ad596bba057945428c7f99a4bd0116"
+  },
+  "id": "Gyp1Iwxy2b0YAWP9",
+  "tags": [
+    {
+      "updatedAt": "2026-09-08T15:50:55.974Z",
+      "createdAt": "2026-09-08T15:50:55.974Z",
+      "id": "pnjSSb8wq7QKN59g",
+      "name": "Henry"
+    }
+  ]
+}
